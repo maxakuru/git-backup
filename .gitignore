@@ -1,0 +1,5 @@
+__pycache__
+.env
+volume
+tmp
+.DS_Store
