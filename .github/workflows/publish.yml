@@ -1,0 +1,29 @@
+# publish.yml
+
+name: 'Publish'
+env:
+  USER: maxakuru
+  IMAGE: git-backup
+  TAG: latest
+on:
+  push:
+    branches: [ $default-branch ]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: $USER
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --tag $USER/$IMAGE:$TAG
+      - name: Test Docker image
+        env: 
+          MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./test/functional/test.sh
+        shell: bash
+      - name: Push Docker image
+        run: docker push $USER/$IMAGE:$TAG

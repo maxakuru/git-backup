@@ -19,6 +19,7 @@ docker run -it --rm -v $PWD/volume/config:/backup/config \
     -v $PWD/git_backup:/backup/git_backup \
     -e REPO_NAME=git-backup \
     -e REPO_OWNER=maxakuru \
+    -e REPO_BRANCH=tests-ci \
     -e GIT_TOKEN=$MY_GIT_TOKEN \
     -e PATHS=test/functional/paths/a.d:foo/a.d,./test/functional/paths/b:./foo/b,/backup/test/functional/paths/c.txt:/bar/c.txt \
     -e LOOP=false \
