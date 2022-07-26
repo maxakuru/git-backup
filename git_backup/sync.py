@@ -162,7 +162,7 @@ def compress(repo: RepoConfig, path: PathConfig) -> str:
     
     return shutil.make_archive(dest, archive_type, root_dir, base_dir)
         
-def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig):   
+def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:   
     cmd = ['rsync']
     if config['archive']:
         cmd.append('-a')
@@ -170,18 +170,20 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig):
     log.info(f'rsync() local={path["local"]}')
     cmd.append(path['local'])
     
+    remote_path
+    
     if os.path.isdir(path['local']):
         # syncing directory
-        remote_dir = resolve_remote(repo, os.path.dirname(path["remote"]))
-        log.info(f'rsync() remote_file={remote_dir}')
-        cmd.append(remote_dir)
+        remote_path = resolve_remote(repo, os.path.dirname(path["remote"]))
+        log.info(f'rsync() remote_file={remote_path}')
     else:
         # syncing file
-        remote_file = resolve_remote(repo, path["remote"])
-        log.info(f'rsync() remote_file={remote_file}')
-        cmd.append(remote_file)
-    
+        remote_path = resolve_remote(repo, path["remote"])
+        log.info(f'rsync() remote_file={remote_path}')
+        
+    cmd.append(remote_path)
     exec_sh(cmd)
+    return remote_path
     
 def sync(conf: Config):
     """
@@ -209,8 +211,7 @@ def sync(conf: Config):
                 change_path = os.path.relpath(archive_name, repo_path)
             else:
                 # otherwise, use rsync to pull changes into repo
-                rsync(repo, path, conf['rsync'])
-                change_path = path['remote']
+                change_path = rsync(repo, path, conf['rsync'])
                 
             git_add(repo, change_path)
                 
