@@ -151,7 +151,7 @@ def bootstrap_secrets(default_repo: RepoConfig) -> SecretsConfig:
     if token is None and token_file is not None:
         try:
             with open(token_file, "r", encoding="utf8") as stream:
-                token = stream.read().strip()
+                token = stream.read().strip().strip('\r\n')
         except Exception as e:
             log.error(f'ERROR: bootstrap_secrets() failed to read token file at path \'{token_file}\'. \n Error: {e}')
             raise e
