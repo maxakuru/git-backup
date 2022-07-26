@@ -16,9 +16,8 @@ cd "../.."
 : "${OWNER:=maxakuru}"
 : "${BRANCH:=tests-ci}"
 : "${GIT_PUSH:=0}"
-: "${PATHS:='test/functional/paths/a.d:foo/a.d,./test/functional/paths/b:./foo/b,/backup/test/functional/paths/c.txt:/bar/c.txt'}"
 
-
+PATHS="./test/functional/paths"
 now="$(date)"
 echo "A_ACTUAL=\"$now\"" > "$PATHS/a.d/a"
 echo "B_ACTUAL=\"$now\"" > "$PATHS/b"
@@ -33,7 +32,7 @@ docker run --rm -v $PWD/volume/config:/backup/config \
     -e REPO_OWNER=$OWNER \
     -e REPO_BRANCH=$BRANCH \
     -e GIT_TOKEN=$MY_GIT_TOKEN \
-    -e PATHS=$PATHS \
+    -e PATHS=test/functional/paths/a.d:foo/a.d,./test/functional/paths/b:./foo/b,/backup/test/functional/paths/c.txt:/bar/c.txt \
     -e LOOP=false \
     -e COMPRESS=zip \
     -e SAVE_CONFIG=0 \
