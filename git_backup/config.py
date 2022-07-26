@@ -1,5 +1,7 @@
+from logging import StreamHandler, Formatter
 import os
 from typing import Optional
+import sys
 
 import yaml
 
@@ -15,6 +17,12 @@ if LOG_LEVEL < 6:
 
 _root_logger = get_root_logger()
 _root_logger.setLevel(LOG_LEVEL)
+
+handler = StreamHandler(sys.stdout)
+handler.setLevel(LOG_LEVEL)
+formatter = Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+_root_logger.addHandler(handler)
 
 log = get_logger('config')
 
