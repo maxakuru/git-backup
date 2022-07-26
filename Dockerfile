@@ -9,5 +9,6 @@ RUN pip install -r requirements.txt
 
 COPY git_backup /backup/git_backup
 COPY run.sh /backup/run.sh
+RUN chmod +x /backup/run.sh
 
-ENTRYPOINT ["/backup/run.sh"]
+ENTRYPOINT ["./run.sh"]
