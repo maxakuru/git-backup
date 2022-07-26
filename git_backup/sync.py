@@ -1,3 +1,4 @@
+from genericpath import isfile
 from typing import List, Optional
 import subprocess
 import os
@@ -180,7 +181,13 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
     real_local = os.path.realpath(path['local'])
     log.info(f'rsync() real_local={real_local}')
 
-    if os.path.isdir(real_local) or path['local'].endswith('/'):
+    if os.path.isfile(path['local']):
+        # syncing file
+        # make parent dir
+        mkdir_p(resolve_remote(repo, os.path.dirname(path["remote"])))
+        remote_path = resolve_remote(repo, path["remote"])
+        log.info(f'rsync() local_file={local_path} remote_file={remote_path}')
+    else:
         # syncing directory
         # make directory
         mkdir_p(resolve_remote(repo, path["remote"]))
@@ -189,12 +196,7 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
             local_path += '/'
         
         log.info(f'rsync() local_dir={local_path} remote_dir={remote_path}')
-    else:
-        # syncing file
-        # make parent dir
-        mkdir_p(resolve_remote(repo, os.path.dirname(path["remote"])))
-        remote_path = resolve_remote(repo, path["remote"])
-        log.info(f'rsync() local_file={local_path} remote_file={remote_path}')
+       
     
     cmd.append(local_path)
     cmd.append(remote_path)
