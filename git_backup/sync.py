@@ -209,7 +209,7 @@ def sync(conf: Config):
                 change_path = os.path.relpath(archive_name, repo_path)
             else:
                 # otherwise, use rsync to pull changes into repo
-                rsync(repo, path)
+                rsync(repo, path, conf['rsync'])
                 change_path = path['remote']
                 
             git_add(repo, change_path)

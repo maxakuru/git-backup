@@ -31,6 +31,7 @@ docker run -it --rm \
     -e GIT_MESSAGE=<string> \
     -e GIT_EMAIL=<string> \
     -e GIT_NAME=<string> \
+    -e LOG_LEVEL=<0|1|2|3|4|5> \
     maxakuru/git-backup
 ```
 
