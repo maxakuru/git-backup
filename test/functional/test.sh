@@ -16,7 +16,7 @@ cd "../.."
 : "${OWNER:=maxakuru}"
 : "${BRANCH:=tests-ci}"
 : "${GIT_PUSH:=0}"
-: "${PATHS:=test/functional/paths/a.d:foo/a.d,./test/functional/paths/b:./foo/b,/backup/test/functional/paths/c.txt:/bar/c.txt}"
+: "${PATHS:='test/functional/paths/a.d:foo/a.d,./test/functional/paths/b:./foo/b,/backup/test/functional/paths/c.txt:/bar/c.txt'}"
 
 
 now="$(date)"
