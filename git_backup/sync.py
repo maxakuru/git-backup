@@ -1,6 +1,6 @@
 from re import L
 from typing import List, Optional
-from git_backup.config import DEFAULT_COMMIT_MESSAGE, DEFAULT_GIT_EMAIL, DEFAULT_GIT_NAME
+from git_backup.config import DEFAULT_COMMIT_MESSAGE
 from git_backup.secrets import Secrets
 from git_backup.types import Config, PathConfig, RepoConfig
 import subprocess
@@ -24,6 +24,8 @@ def exec_sh(cmd: List[str], cwd: Optional[str] = None) -> str:
 
 
 def get_repo_path(repo: RepoConfig):
+    if "storage_root" in repo:
+        return repo['storage_root']
     return os.path.join('/backup/repos', repo['owner'], repo['name'])
 
 def get_repo_url(repo: RepoConfig, token: Optional[str] = None) -> str:

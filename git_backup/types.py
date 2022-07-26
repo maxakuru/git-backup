@@ -25,6 +25,7 @@ class GitConfig(TypedDict):
 class RepoConfig(TypedDict):
     name: str
     owner: str
+    storage_root: str
     endpoint: Optional[str]
     paths: List[PathConfig]
     branch: Optional[str]
@@ -40,8 +41,12 @@ class LoopConfig(TypedDict):
     loop: bool # whether to loop
     interval: float # minutes, default=1440 (1 day)
     schedule: Optional[CronTab]
+    
+class StorageConfig(TypedDict):
+    repo_root: str
 
 class Config(TypedDict):
+    storage: StorageConfig
     repos: List[RepoConfig]
     secrets: 'Secrets'
     loop: LoopConfig

@@ -5,7 +5,7 @@ from git_backup.env import get_env
 
 from typing import List, Optional
 from git_backup.secrets import Secrets
-from git_backup.types import CompressType, GitConfig, LoopConfig, PathConfig, RepoConfig, Config, SecretsConfig
+from git_backup.types import CompressType, GitConfig, LoopConfig, PathConfig, RepoConfig, Config, SecretsConfig, StorageConfig
 
 
 SAVE_CONFIG = get_env("SAVE_CONFIG", True, "1", bool)
@@ -17,6 +17,7 @@ CONF_PATH = os.path.join(CONF_ROOT, "config.yaml")
 SECRETS_ROOT = get_env("SECRETS_ROOT", True, "/backup/secrets")
 SECRETS_PATH = os.path.join(SECRETS_ROOT, "secrets.yaml")
 
+DEFAULT_REPO_ROOT = '/backup/repos'
 DEFAULT_API_BASE = 'https://api.github.com'
 DEFAULT_ENDPOINT = 'https://github.com'
 DEFAULT_COMPRESSION = 'zip'
@@ -58,7 +59,8 @@ def make_git_config() -> GitConfig:
     }
 
 def make_repo_config(
-    compress: Optional[CompressType] = None
+    storage_config: StorageConfig,
+    compress: Optional[CompressType] = None,
 ) -> RepoConfig:
     name = get_env('REPO_NAME')
     owner = get_env('REPO_OWNER')
@@ -68,6 +70,7 @@ def make_repo_config(
     branch = get_env('REPO_BRANCH', True, "main")
     
     return {
+        "storage_root": os.path.join(storage_config["repo_root"], owner, name),
         "name": name,
         "owner": owner,
         "branch": branch,
@@ -89,6 +92,13 @@ def make_loop_config() -> LoopConfig:
     if schedule is not None:
         loop_conf['schedule'] = Cron(schedule)
     return loop_conf
+
+def make_storage_config() -> StorageConfig:
+    repo_root = get_env('STORAGE_REPO_ROOT', True, DEFAULT_REPO_ROOT)
+    
+    return {
+        "repo_root": repo_root
+    }
     
 def bootstrap() -> Config:
     '''
@@ -101,9 +111,12 @@ def bootstrap() -> Config:
         compress = compress.lower().strip()
         if compress == 'yes' or compress == '1' or compress == 'true':
             compress = DEFAULT_COMPRESSION
+            
+    storage_config = make_storage_config()
         
     data = {
-        "repos": [make_repo_config(compress)],
+        "storage": storage_config,
+        "repos": [make_repo_config(storage_config, compress)],
         "loop": make_loop_config()
     }
 
@@ -125,6 +138,11 @@ def bootstrap_secrets(default_repo: RepoConfig) -> SecretsConfig:
     name = default_repo["name"]
     owner = default_repo["owner"]
     token = get_env('GIT_TOKEN', True)
+    token_file = get_env('GIT_TOKEN_FILE', True)
+    
+    if token is None and token_file is not None:
+        with open(token_file, "r", encoding="utf8") as stream:
+            token = stream.read()
     
     data = make_default_secrets(name, owner, token)
     
