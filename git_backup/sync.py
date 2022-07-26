@@ -8,8 +8,10 @@ import os
 import shutil
 import pathlib
 
+from logging import Logger
+log = Logger('sync')
+
 def exec_sh(cmd: List[str], cwd: Optional[str] = None) -> str:
-    # print(f'exec_sh({cmd}) cwd={cwd}')    
     proc = subprocess.Popen(cmd, 
                             cwd=cwd,
                             stdout=subprocess.PIPE, 
@@ -17,9 +19,9 @@ def exec_sh(cmd: List[str], cwd: Optional[str] = None) -> str:
                             universal_newlines=True)
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:
+        log.error(f'ERROR: exec_sh() Failed to execute command: {" ".join(cmd)}. \nError: {stderr}')
         raise RuntimeError(f'Failed to execute command: {" ".join(cmd)}. \nError: {stderr}')
         
-    # print(f'exec_sh({cmd}) stdout: ', stdout)
     return stdout
 
 
@@ -49,17 +51,19 @@ def git_fetch(repo: RepoConfig, secrets: Secrets):
     
     exists = os.path.exists(git_path)
     if exists and not os.path.isdir(git_path):
+        log.error(f'ERROR: git_fetch() Invalid path. Expecting .git directory at path: {git_path}')
         raise RuntimeError(f'Invalid path. Expecting .git directory at path: {git_path}')
     
     url = get_repo_url(repo, secrets.get_token(repo['owner'], repo['name']))
     branch = repo['branch']
 
-    # first pull
-    # 'git clone <url> --depth 1 --branch <branch>'
     if not exists:
+        # first pull
+        log.info('git_fetch() first pull')
         exec_sh(["git", "clone", url, '-q', "--depth", "1", "--branch", branch, "."], cwd=local_path)
     else:
         # subsequent pulls
+        log.info('git_fetch() subsequent pull')
         exec_sh(["git", "fetch", '-q', url], cwd=local_path)
         exec_sh(["git", "switch", '-q', branch], cwd=local_path)
         exec_sh(["git", "pull", '-q', url, branch], cwd=local_path)
@@ -69,7 +73,7 @@ def git_checkout(repo: RepoConfig, branch: str, secrets: Secrets):
     Checkout the branch
     """
     owner, name = repo['owner'], repo['name']
-    # print(f'checkout: {owner}/{name}:+{branch}')
+    log.info(f'git_checkout() owner={owner} repo={name} branch={branch}')
     
     local_path = get_repo_path(repo)
     url = get_repo_url(repo, secrets.get_token(owner, name))
@@ -83,7 +87,7 @@ def git_add(repo: RepoConfig, path: str):
         return
     
     local_path = get_repo_path(repo)
-    # print(f'git add: {path}')
+    log.info(f'git_add() path={path}')
     exec_sh(["git", "add", path], cwd=local_path)
     
 
@@ -116,7 +120,8 @@ def git_commit(repo: RepoConfig) -> str:
         exec_sh(["git", "config", "user.name", name], cwd=local_path)
     
     message = repo['git']['message'] if 'message' in repo['git'] else DEFAULT_COMMIT_MESSAGE
-    # print(f'git commit: {message}')
+    
+    log.info('git_commit()')
     return exec_sh(["git", "commit", "-m", message], cwd=local_path)
 
 def git_push(repo: RepoConfig) -> str:
@@ -129,7 +134,7 @@ def git_push(repo: RepoConfig) -> str:
     if 'force_push' in repo['git'] and repo['git']['force_push'] == True:
         cmd.append('-f')
         
-    # print(f'git push: {" ".join(cmd)}')
+    log.info(f'git_push() cmd={" ".join(cmd)}')
     return exec_sh(cmd, cwd=local_path)
     
     
@@ -137,7 +142,7 @@ def compress(repo: RepoConfig, path: PathConfig) -> str:
     archive_type = path['compress']
     if archive_type is None:
         return
-    
+        
     # directory to begin archiving from (local path)
     root_dir = os.path.dirname(path['local'])
     
@@ -153,18 +158,20 @@ def compress(repo: RepoConfig, path: PathConfig) -> str:
     # file/directory to archive
     base_dir = os.path.basename(path['local'])
     
-    # print(f'compress() dest={dest} root_dir={root_dir} base_dir={base_dir}') 
+    log.info(f'compress() dest={dest} root_dir={root_dir} base_dir={base_dir}') 
     
     return shutil.make_archive(dest, archive_type, root_dir, base_dir)
         
 def rsync(repo: RepoConfig, path: PathConfig):    
     if os.path.isdir(path['local']):
         # syncing directory
+        log.info(f'rsync() directory: {path["local"]}')
         remote_dir = resolve_remote(repo, os.path.dirname(path["remote"]))
         # remote_dir = f'{get_repo_path(repo)}/{os.path.dirname(path["remote"])}'
         exec_sh(['rsync', '-a', path['local'], remote_dir])
     else:
         # syncing file
+        log.info(f'rsync() file: {path["local"]}')
         remote_file = resolve_remote(repo, path["remote"])
         # remote_file = f'{get_repo_path(repo)}/{path["remote"]}'
         exec_sh(['rsync', '-a', path['local'], remote_file])
@@ -176,6 +183,8 @@ def sync(conf: Config):
     """
     for repo in conf['repos']:
         repo_path = get_repo_path(repo)
+        log.debug(f'sync() start repo_path={repo_path}')
+        
         pathlib.Path(repo_path).mkdir(parents=True, exist_ok=True)
         
         git_fetch(repo, conf['secrets'])
@@ -199,7 +208,6 @@ def sync(conf: Config):
                 
             git_add(repo, change_path)
                 
-        # TODO: commit & push changes
-        # print(git_status(repo))
+        log.debug(f'sync() git_status: \n{git_status(repo)}')
         git_commit(repo)
         git_push(repo)

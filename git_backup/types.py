@@ -1,8 +1,8 @@
-from typing import TYPE_CHECKING, Callable, List, Literal, Mapping, Optional, Union, TypedDict
-from crontab import CronTab
+from typing import TYPE_CHECKING, List, Literal, Mapping, Optional, Union, TypedDict
 
 if TYPE_CHECKING:
     from git_backup.secrets import Secrets
+    from git_backup.cron import Cron
 
 CompressType = Union[Literal['zip'], Literal['tar'], Literal["gztar"], Literal["bztar"], Literal["xztar"]]
 
@@ -40,7 +40,7 @@ SecretsConfig = Mapping[str, Mapping[str, RepoSecrets]]
 class LoopConfig(TypedDict):
     loop: bool # whether to loop
     interval: float # minutes, default=1440 (1 day)
-    schedule: Optional[CronTab]
+    schedule: Optional[Cron]
     
 class StorageConfig(TypedDict):
     repo_root: str

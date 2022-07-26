@@ -7,6 +7,8 @@ from typing import List, Optional
 from git_backup.secrets import Secrets
 from git_backup.types import CompressType, GitConfig, LoopConfig, PathConfig, RepoConfig, Config, SecretsConfig, StorageConfig
 
+from logging import Logger
+log = Logger('config')
 
 SAVE_CONFIG = get_env("SAVE_CONFIG", True, "1", bool)
 SAVE_SECRETS = get_env("SAVE_SECRETS", True, "1", bool)
@@ -105,6 +107,8 @@ def bootstrap() -> Config:
     Create config.yaml from env variables and defaults
     '''
     
+    log.info('bootstrap() creating config')
+    
     compress = get_env('COMPRESS', True)
     
     if compress:
@@ -121,6 +125,8 @@ def bootstrap() -> Config:
     }
 
     if SAVE_CONFIG:
+        log.info('bootstrap_secrets() dumping config')
+        
         with open(CONF_PATH, "w", encoding='utf8') as stream:
             yaml.dump(data, stream, default_flow_style=False, allow_unicode=True)
     return data
@@ -135,6 +141,8 @@ def make_default_secrets(name: str, owner: str, token: Optional[str] = None) -> 
     }
     
 def bootstrap_secrets(default_repo: RepoConfig) -> SecretsConfig:
+    log.info('bootstrap_secrets() creating secrets')
+    
     name = default_repo["name"]
     owner = default_repo["owner"]
     token = get_env('GIT_TOKEN', True)
@@ -147,6 +155,8 @@ def bootstrap_secrets(default_repo: RepoConfig) -> SecretsConfig:
     data = make_default_secrets(name, owner, token)
     
     if SAVE_SECRETS:
+        log.info('bootstrap_secrets() dumping secrets')
+        
         with open(SECRETS_PATH, "w", encoding='utf8') as stream:
             yaml.dump(data, stream, default_flow_style=False, allow_unicode=True)
     return data
@@ -157,11 +167,13 @@ def _load_conf():
         stream = open(CONF_PATH, "r")
     except IOError as e:
         if e.errno != 2: # not "file does not exist"
+            log.error(f'ERROR: _load_conf() failed to open config file: {e}')
             raise e
         return bootstrap()
     try:
         return yaml.safe_load(stream)
     except yaml.YAMLError as e:
+        log.error(f'ERROR: _load_conf() Error reading config: {e}')
         raise ValueError(f"Error reading config: {e}").with_traceback(e.__traceback__)
 
 def _load_secrets(conf: Config) -> SecretsConfig:
@@ -169,15 +181,18 @@ def _load_secrets(conf: Config) -> SecretsConfig:
         stream = open(SECRETS_PATH, "r")
     except IOError as e:
         if e.errno != 2: # not "file does not exist"
+            log.error(f'ERROR: _load_secrets() failed to open secrets file: {e}')
             raise e
         default_repo = conf['repos'][0]
         return bootstrap_secrets(default_repo)
     try:
         return yaml.safe_load(stream)
     except yaml.YAMLError as e:
+        log.error(f'ERROR: _load_secrets() Error reading secrets: {e}')
         raise ValueError(f"Error reading secrets: {e}").with_traceback(e.__traceback__)
 
 def load() -> Config:
+    log.info('load()')
     conf = _load_conf()
     conf['secrets'] = Secrets(_load_secrets(conf))
     return conf
