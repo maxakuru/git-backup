@@ -6,4 +6,6 @@ if [ -n "$CLI" ] && [ $CLI = true ]; then
     COMMAND="$@"
 fi
 
+echo "starting with command: $COMMAND"
+
 exec $COMMAND
