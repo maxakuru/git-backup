@@ -177,7 +177,7 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
     local_path = path["local"]
     cmd.append(path['local'])
         
-    if os.path.isdir(path['local']):
+    if os.path.isdir(os.path.realpath(path['local'])):
         # syncing directory
         # make directory
         mkdir_p(resolve_remote(repo, path["remote"]))
