@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING, List, Literal, Mapping, Optional, Union, TypedDict
+from git_backup.cron import Cron
 
 if TYPE_CHECKING:
     from git_backup.secrets import Secrets
-    from git_backup.cron import Cron
 
 CompressType = Union[Literal['zip'], Literal['tar'], Literal["gztar"], Literal["bztar"], Literal["xztar"]]
 
