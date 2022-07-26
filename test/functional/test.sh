@@ -31,7 +31,7 @@ docker run --rm -v $PWD/volume/config:/backup/config \
     -e GIT_PUSH=0 \
     -e GIT_EMAIL="maxakuru@users.noreply.github.com" \
     -e GIT_NAME="maxakuru" \
-    gitbackup-dev
+    maxakuru/git-backup
 
 mkdir -p ./tmp
 
