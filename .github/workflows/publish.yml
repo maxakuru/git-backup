@@ -7,7 +7,8 @@ env:
   TAG: latest
 on:
   push:
-    branches: [ $default-branch ]
+    branches: 
+      - main
 jobs:
   publish:
     runs-on: ubuntu-latest

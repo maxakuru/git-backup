@@ -5,16 +5,21 @@ env:
   IMAGE: git-backup
 on:
   pull_request:
-    branches: [ $default-branch ]
+    branches: 
+      - main
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Get tag
+        id: tag
+        run: echo "::set-output name=TAG::$(date +%s)"
       - uses: actions/checkout@v3
       - name: Build Docker image
-        run: docker build . --file Dockerfile --tag $USER/$IMAGE:$(date +%s)
+        run: docker build . --file Dockerfile --tag $USER/$IMAGE:${{ steps.tag.outputs.TAG }}
       - name: Test Docker image
         env: 
           MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.tag.outputs.TAG }}
         run: ./test/functional/test.sh
         shell: bash
