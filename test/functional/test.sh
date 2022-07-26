@@ -5,9 +5,19 @@ set -e
 cd "$(dirname "$0")"
 cd "../.."
 
-PATHS="./test/functional/paths"
-
 [ -f ./.env ] && source ./.env
+
+: "${TAG:=dev}"
+: "${USER:=maxakuru}"
+: "${IMAGE:=git-backup}"
+: "${GIT_NAME:=maxakuru}"
+: "${GIT_EMAIL:=maxakuru@users.noreply.github.com}"
+: "${REPO:=git-backup}"
+: "${OWNER:=maxakuru}"
+: "${BRANCH:=tests-ci}"
+: "${GIT_PUSH:=0}"
+: "${PATHS:=test/functional/paths/a.d:foo/a.d,./test/functional/paths/b:./foo/b,/backup/test/functional/paths/c.txt:/bar/c.txt}"
+
 
 now="$(date)"
 echo "A_ACTUAL=\"$now\"" > "$PATHS/a.d/a"
@@ -19,25 +29,25 @@ docker run --rm -v $PWD/volume/config:/backup/config \
     -v $PWD/volume/secrets:/backup/secrets \
     -v $PWD/test:/backup/test \
     -v $PWD/git_backup:/backup/git_backup \
-    -e REPO_NAME=git-backup \
-    -e REPO_OWNER=maxakuru \
-    -e REPO_BRANCH=tests-ci \
+    -e REPO_NAME=$REPO \
+    -e REPO_OWNER=$OWNER \
+    -e REPO_BRANCH=$BRANCH \
     -e GIT_TOKEN=$MY_GIT_TOKEN \
-    -e PATHS=test/functional/paths/a.d:foo/a.d,./test/functional/paths/b:./foo/b,/backup/test/functional/paths/c.txt:/bar/c.txt \
+    -e PATHS=$PATHS \
     -e LOOP=false \
     -e COMPRESS=zip \
     -e SAVE_CONFIG=0 \
     -e SAVE_SECRETS=0 \
-    -e GIT_PUSH=0 \
-    -e GIT_EMAIL="maxakuru@users.noreply.github.com" \
-    -e GIT_NAME="maxakuru" \
-    maxakuru/git-backup
+    -e GIT_PUSH=$GIT_PUSH \
+    -e GIT_EMAIL=$GIT_EMAIL \
+    -e GIT_NAME=$GIT_NAME \
+    $USER/$IMAGE:$TAG
 
 mkdir -p ./tmp
 
-unzip volume/repos/maxakuru/git-backup/foo/a.zip -d tmp/a
-unzip volume/repos/maxakuru/git-backup/foo/b.zip -d tmp/b
-unzip volume/repos/maxakuru/git-backup/bar/c.zip -d tmp/c
+unzip volume/repos/$OWNER/$REPO/foo/a.zip -d tmp/a
+unzip volume/repos/$OWNER/$REPO/foo/b.zip -d tmp/b
+unzip volume/repos/$OWNER/$REPO/bar/c.zip -d tmp/c
 
 source ./tmp/a/a.d/a
 [ "$A_ACTUAL" == "$now" ] || (echo "Test failed, A_ACTUAL has incorrect value: $A_ACTUAL (expected $now)" && rm -rf ./tmp && exit 1)
