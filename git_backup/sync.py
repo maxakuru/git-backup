@@ -2,7 +2,7 @@ from re import L
 from typing import List, Optional
 from git_backup.config import DEFAULT_COMMIT_MESSAGE
 from git_backup.secrets import Secrets
-from git_backup.types import Config, PathConfig, RepoConfig
+from git_backup.types import Config, PathConfig, RSyncConfig, RepoConfig
 import subprocess
 import os
 import shutil
@@ -162,20 +162,26 @@ def compress(repo: RepoConfig, path: PathConfig) -> str:
     
     return shutil.make_archive(dest, archive_type, root_dir, base_dir)
         
-def rsync(repo: RepoConfig, path: PathConfig):    
+def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig):   
+    cmd = ['rsync']
+    if config['archive']:
+        cmd.append('-a')
+    
+    log.info(f'rsync() local={path["local"]}')
+    cmd.append(path['local'])
+    
     if os.path.isdir(path['local']):
         # syncing directory
-        log.info(f'rsync() directory: {path["local"]}')
         remote_dir = resolve_remote(repo, os.path.dirname(path["remote"]))
-        # remote_dir = f'{get_repo_path(repo)}/{os.path.dirname(path["remote"])}'
-        exec_sh(['rsync', '-a', path['local'], remote_dir])
+        log.info(f'rsync() remote_file={remote_dir}')
+        cmd.append(remote_dir)
     else:
         # syncing file
-        log.info(f'rsync() file: {path["local"]}')
         remote_file = resolve_remote(repo, path["remote"])
-        # remote_file = f'{get_repo_path(repo)}/{path["remote"]}'
-        exec_sh(['rsync', '-a', path['local'], remote_file])
-        
+        log.info(f'rsync() remote_file={remote_file}')
+        cmd.append(remote_file)
+    
+    exec_sh(cmd)
     
 def sync(conf: Config):
     """

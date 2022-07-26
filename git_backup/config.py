@@ -5,7 +5,7 @@ from git_backup.env import get_env
 
 from typing import List, Optional
 from git_backup.secrets import Secrets
-from git_backup.types import CompressType, GitConfig, LoopConfig, PathConfig, RepoConfig, Config, SecretsConfig, StorageConfig
+from git_backup.types import CompressType, GitConfig, LoopConfig, PathConfig, RSyncConfig, RepoConfig, Config, SecretsConfig, StorageConfig
 
 from logging import Logger
 log = Logger('config')
@@ -102,6 +102,14 @@ def make_storage_config() -> StorageConfig:
         "repo_root": repo_root
     }
     
+def make_rsync_config() -> RSyncConfig:
+    archive = get_env('RSYNC_ARCHIVE', True, '1', bool)
+    
+    return {
+        "archive": archive
+    }
+
+    
 def bootstrap() -> Config:
     '''
     Create config.yaml from env variables and defaults
@@ -120,6 +128,7 @@ def bootstrap() -> Config:
         
     data = {
         "storage": storage_config,
+        "rsync": make_rsync_config(),
         "repos": [make_repo_config(storage_config, compress)],
         "loop": make_loop_config()
     }

@@ -44,9 +44,13 @@ class LoopConfig(TypedDict):
     
 class StorageConfig(TypedDict):
     repo_root: str
+    
+class RSyncConfig(TypedDict):
+    archive: bool
 
 class Config(TypedDict):
     storage: StorageConfig
+    rsync: RSyncConfig
     repos: List[RepoConfig]
     secrets: 'Secrets'
     loop: LoopConfig
