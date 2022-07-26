@@ -103,9 +103,12 @@ def resolve_remote(repo: RepoConfig, path: str) -> str:
         out = out + f'/{path}'
     return os.path.normpath(out)
 
-def git_status(repo: RepoConfig) -> str:
+def git_status(repo: RepoConfig, porcelain: bool = False) -> str:
     local_path = get_repo_path(repo)
-    return exec_sh(["git", "status"], cwd=local_path)
+    cmd = ["git", "status"]
+    if porcelain:
+        cmd.append('--porcelain')
+    return exec_sh(cmd, cwd=local_path)
 
 def git_commit(repo: RepoConfig) -> str:
     if repo['git']['commit'] == False:
@@ -224,7 +227,10 @@ def sync(conf: Config):
                 change_path = rsync(repo, path, conf['rsync'])
                 
             git_add(repo, change_path)
-                
-        log.debug(f'sync() git_status: \n{git_status(repo)}')
-        git_commit(repo)
-        git_push(repo)
+                        
+        status = git_status(repo, True)
+        if status:
+            log.debug(f'sync() git_status: \n{git_status(repo)}')
+            log.info(f'sync() git_status (porcelain): \n{status}')
+            git_commit(repo)
+            git_push(repo)
