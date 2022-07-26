@@ -166,19 +166,25 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
     cmd = ['rsync']
     if config['archive']:
         cmd.append('-a')
+    else: 
+        cmd.append('-r')
     
-    log.info(f'rsync() local={path["local"]}')
+    local_path = path["local"]
     cmd.append(path['local'])
     
     if os.path.isdir(path['local']):
         # syncing directory
-        remote_path = resolve_remote(repo, os.path.dirname(path["remote"]))
-        log.info(f'rsync() remote_file={remote_path}')
+        remote_path = resolve_remote(repo, os.path.join(os.path.dirname(path["remote"]), ''))
+        if not local_path.endswith('/'):
+            local_path += '/'
+        
+        log.info(f'rsync() local_dir={local_path} remote_dir={remote_path}')
     else:
         # syncing file
         remote_path = resolve_remote(repo, path["remote"])
-        log.info(f'rsync() remote_file={remote_path}')
-        
+        log.info(f'rsync() local_file={local_path} remote_file={remote_path}')
+    
+    cmd.append(local_path)
     cmd.append(remote_path)
     exec_sh(cmd)
     return remote_path
