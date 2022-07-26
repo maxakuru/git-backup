@@ -9,8 +9,8 @@ from git_backup.logger import get_logger, get_root_logger
 from git_backup.secrets import Secrets
 from git_backup.types import CompressType, GitConfig, LoopConfig, PathConfig, RSyncConfig, RepoConfig, Config, SecretsConfig, StorageConfig
 
-LOG_LEVEL = get_env("LOG_LEVEL", True, 2)
-if LOG_LEVEL < 10:
+LOG_LEVEL = get_env("LOG_LEVEL", True, '20', int)
+if LOG_LEVEL < 6:
     LOG_LEVEL = LOG_LEVEL*10
 
 _root_logger = get_root_logger()
