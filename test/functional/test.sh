@@ -1,11 +1,13 @@
 #!/bin/bash
 
+set -e
+
 cd "$(dirname "$0")"
 cd "../.."
 
 PATHS="./test/functional/paths"
 
-source ./.env
+[ -f ./.env ] && source ./.env
 
 now="$(date)"
 echo "A_ACTUAL=\"$now\"" > "$PATHS/a.d/a"
@@ -33,9 +35,9 @@ docker run -it --rm -v $PWD/volume/config:/backup/config \
 
 mkdir -p ./tmp
 
-unzip volume/repos/maxakuru/home-backup/foo/a.zip -d tmp/a
-unzip volume/repos/maxakuru/home-backup/foo/b.zip -d tmp/b
-unzip volume/repos/maxakuru/home-backup/bar/c.zip -d tmp/c
+unzip volume/repos/maxakuru/git-backup/foo/a.zip -d tmp/a
+unzip volume/repos/maxakuru/git-backup/foo/b.zip -d tmp/b
+unzip volume/repos/maxakuru/git-backup/bar/c.zip -d tmp/c
 
 source ./tmp/a/a.d/a
 [ "$A_ACTUAL" == "$now" ] || (echo "Test failed, A_ACTUAL has incorrect value: $A_ACTUAL (expected $now)" && rm -rf ./tmp && exit 1)
