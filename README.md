@@ -1,5 +1,7 @@
 # git-backup
 
+[![Docker Image Version (latest by date)](https://img.shields.io/docker/v/maxakuru/git-backup?label=Docker%20image)](https://hub.docker.com/r/maxakuru/git-backup) [![Publish](https://github.com/maxakuru/git-backup/actions/workflows/publish.yml/badge.svg)](https://github.com/maxakuru/git-backup/actions/workflows/publish.yml) [![Test](https://github.com/maxakuru/git-backup/actions/workflows/test.yml/badge.svg)](https://github.com/maxakuru/git-backup/actions/workflows/test.yml)
+
 Backup files/folders to a git repo. Run on a cron schedule or repeated loop with delay. Archive files/folders and set specific destinations in remote repository.
 
 ## Install
@@ -7,7 +9,8 @@ Backup files/folders to a git repo. Run on a cron schedule or repeated loop with
 ### With Docker
 ```sh
 docker pull maxakuru/git-backup
-
+```
+```sh
 docker run -it --rm \
     -v $PWD/config:/backup/config \
     -v $PWD/repos:/backup/repos \
@@ -45,12 +48,6 @@ backup:
         # - ... see above
 ```
 
-## Deploy
-```sh
-docker build -t maxakuru/git-backup .
-docker push maxakuru/git-backup[:tag]
-```
-
 
 ## Dev
 
@@ -62,13 +59,12 @@ docker run -it --rm -v $PWD/volume:/backup/config \
     -e REPO_OWNER=<REPO_OWNER> \
     -e GIT_TOKEN=<GIT_TOKEN> \
     -e PATHS=<PATHS> \
-    -e COMPRESS=<tar|zip|true|false> \
     maxakuru/git-backup:dev
 ```
 
 ### Test
 ```sh
-echo "<GITHUB_KEY> > .env"
+echo "MY_GITHUB_TOKEN=<GITHUB_PAT> >> .env"
 ./test/functional/test.sh
 ```
 
@@ -84,7 +80,6 @@ docker run -it --rm -v $PWD/volume:/backup/config \
     -e REPO_OWNER=<REPO_OWNER> \
     -e GIT_TOKEN=<GIT_TOKEN> \
     -e PATHS=<PATHS> \
-    -e COMPRESS=<tar|zip|gztar|bztar|xztar|true|false> \
     maxakuru/git-backup:dev
 ```
 
