@@ -1,9 +1,10 @@
 from time import sleep
+
 from git_backup.config import load
 from git_backup.sync import sync
+from git_backup.logger import get_logger
 
-from logging import Logger
-log = Logger('main')
+log = get_logger('main')
 
 def run():
     log.info('starting up')

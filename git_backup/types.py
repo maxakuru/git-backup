@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, List, Literal, Mapping, Optional, Union, TypedDict
+
 from git_backup.cron import Cron
 
 if TYPE_CHECKING:
@@ -34,7 +35,7 @@ class RepoConfig(TypedDict):
 class RepoSecrets(TypedDict):
     token: Optional[str]
     
-# { owner -> { repo -> RepoSecrets}}
+# { owner -> { repo -> RepoSecrets}}    
 SecretsConfig = Mapping[str, Mapping[str, RepoSecrets]]
 
 class LoopConfig(TypedDict):
@@ -49,6 +50,7 @@ class RSyncConfig(TypedDict):
     archive: bool
 
 class Config(TypedDict):
+    version: int
     storage: StorageConfig
     rsync: RSyncConfig
     repos: List[RepoConfig]

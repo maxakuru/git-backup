@@ -1,15 +1,15 @@
-from re import L
 from typing import List, Optional
-from git_backup.config import DEFAULT_COMMIT_MESSAGE
-from git_backup.secrets import Secrets
-from git_backup.types import Config, PathConfig, RSyncConfig, RepoConfig
 import subprocess
 import os
 import shutil
 import pathlib
 
-from logging import Logger
-log = Logger('sync')
+from git_backup.config import DEFAULT_COMMIT_MESSAGE
+from git_backup.secrets import Secrets
+from git_backup.logger import get_logger
+from git_backup.types import Config, PathConfig, RSyncConfig, RepoConfig
+
+log = get_logger('sync')
 
 def exec_sh(cmd: List[str], cwd: Optional[str] = None) -> str:
     proc = subprocess.Popen(cmd, 

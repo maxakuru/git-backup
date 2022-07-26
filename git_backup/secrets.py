@@ -1,4 +1,5 @@
 from typing import Optional
+
 from git_backup.types import SecretsConfig
 
 class Secrets:

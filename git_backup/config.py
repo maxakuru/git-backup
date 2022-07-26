@@ -1,14 +1,24 @@
-import yaml
 import os
+from typing import Optional
+
+import yaml
+
 from git_backup.cron import Cron
 from git_backup.env import get_env
-
-from typing import List, Optional
+from git_backup.logger import get_logger, get_root_logger
 from git_backup.secrets import Secrets
 from git_backup.types import CompressType, GitConfig, LoopConfig, PathConfig, RSyncConfig, RepoConfig, Config, SecretsConfig, StorageConfig
 
-from logging import Logger
-log = Logger('config')
+LOG_LEVEL = get_env("LOG_LEVEL", True, 2)
+if LOG_LEVEL < 10:
+    LOG_LEVEL = LOG_LEVEL*10
+
+_root_logger = get_root_logger()
+_root_logger.setLevel(LOG_LEVEL)
+
+log = get_logger('config')
+
+VERSION = 0
 
 SAVE_CONFIG = get_env("SAVE_CONFIG", True, "1", bool)
 SAVE_SECRETS = get_env("SAVE_SECRETS", True, "1", bool)
@@ -127,6 +137,7 @@ def bootstrap() -> Config:
     storage_config = make_storage_config()
         
     data = {
+        "version": VERSION,
         "storage": storage_config,
         "rsync": make_rsync_config(),
         "repos": [make_repo_config(storage_config, compress)],
@@ -142,6 +153,7 @@ def bootstrap() -> Config:
 
 def make_default_secrets(name: str, owner: str, token: Optional[str] = None) -> SecretsConfig:
     return {
+        "version": VERSION,
         owner: {
             name: {
                 "token": token
