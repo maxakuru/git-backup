@@ -176,26 +176,24 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
         cmd.append('-r')
     
     local_path = path["local"]
-    cmd.append(path['local'])
-    
-    real_local = os.path.realpath(path['local'])
-    log.info(f'rsync() real_local={real_local}')
-
-    if os.path.isfile(path['local']):
+    real_local = os.path.realpath(local_path)
+    remote_path = resolve_remote(repo, path["remote"])
+     
+    if os.path.isfile(local_path):
         # syncing file
         # make parent dir
         mkdir_p(resolve_remote(repo, os.path.dirname(path["remote"])))
-        remote_path = resolve_remote(repo, path["remote"])
-        log.info(f'rsync() local_file={local_path} remote_file={remote_path}')
+        log.info(f'rsync() local_file={local_path} real_local={real_local} remote_file={remote_path}')
     else:
         # syncing directory
         # make directory
         mkdir_p(resolve_remote(repo, path["remote"]))
-        remote_path = resolve_remote(repo, os.path.join(os.path.dirname(path["remote"]), ''))
         if not local_path.endswith('/'):
             local_path += '/'
+        if remote_path.endswith('/'):
+            remote_path = remote_path[0:-1]
         
-        log.info(f'rsync() local_dir={local_path} remote_dir={remote_path}')
+        log.info(f'rsync() local_dir={local_path} real_local={real_local} remote_dir={remote_path}')
        
     
     cmd.append(local_path)
