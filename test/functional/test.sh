@@ -14,7 +14,7 @@ echo "A_ACTUAL=\"$now\"" > "$PATHS/a.d/a"
 echo "B_ACTUAL=\"$now\"" > "$PATHS/b"
 echo "C_ACTUAL=\"$now\"" > "$PATHS/c.txt"
 
-docker run -it --rm -v $PWD/volume/config:/backup/config \
+docker run --rm -v $PWD/volume/config:/backup/config \
     -v $PWD/volume/repos:/backup/repos \
     -v $PWD/volume/secrets:/backup/secrets \
     -v $PWD/test:/backup/test \
