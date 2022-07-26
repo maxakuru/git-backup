@@ -41,8 +41,6 @@ jobs:
           echo "Status:    ${{ steps.buildx.outputs.status }}"
           echo "Flags:     ${{ steps.buildx.outputs.flags }}"
           echo "Platforms: ${{ steps.buildx.outputs.platforms }}"
-      - name: Build releases
-        run: docker buildx build
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
