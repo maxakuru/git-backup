@@ -24,6 +24,8 @@ def exec_sh(cmd: List[str], cwd: Optional[str] = None) -> str:
         
     return stdout
 
+def mkdir_p(path: str):
+    pathlib.Path(path).mkdir(parents=True, exist_ok=True)
 
 def get_repo_path(repo: RepoConfig):
     if "storage_root" in repo:
@@ -148,7 +150,7 @@ def compress(repo: RepoConfig, path: PathConfig) -> str:
     
     # directory that will contain the archive in the repo
     remote_dir = resolve_remote(repo, os.path.dirname(path["remote"]))
-    pathlib.Path(remote_dir).mkdir(parents=True, exist_ok=True)
+    mkdir_p(remote_dir)
     
     # destination filename without extension (/backup/repos/{owner}/{repo}/{remote_dirname}/{remote_basename})
     remote_file = os.path.basename(path['remote'])
@@ -171,9 +173,11 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
     
     local_path = path["local"]
     cmd.append(path['local'])
-    
+        
     if os.path.isdir(path['local']):
         # syncing directory
+        # make directory
+        mkdir_p(resolve_remote(repo, path["remote"]))
         remote_path = resolve_remote(repo, os.path.join(os.path.dirname(path["remote"]), ''))
         if not local_path.endswith('/'):
             local_path += '/'
@@ -181,6 +185,8 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
         log.info(f'rsync() local_dir={local_path} remote_dir={remote_path}')
     else:
         # syncing file
+        # make parent dir
+        mkdir_p(resolve_remote(repo, os.path.dirname(path["remote"])))
         remote_path = resolve_remote(repo, path["remote"])
         log.info(f'rsync() local_file={local_path} remote_file={remote_path}')
     
@@ -197,7 +203,7 @@ def sync(conf: Config):
         repo_path = get_repo_path(repo)
         log.debug(f'sync() start repo_path={repo_path}')
         
-        pathlib.Path(repo_path).mkdir(parents=True, exist_ok=True)
+        mkdir_p(repo_path)
         
         git_fetch(repo, conf['secrets'])
         cur_branch = repo['branch']
