@@ -9,6 +9,7 @@ on:
       - main
 jobs:
   build:
+    environment: ci
     runs-on: ubuntu-latest
     steps:
       - name: Get tag
