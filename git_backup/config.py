@@ -212,7 +212,7 @@ def _load_conf():
         return yaml.safe_load(stream)
     except yaml.YAMLError as e:
         log.error(f'ERROR: _load_conf() Error reading config: {e}')
-        raise ValueError(f"Error reading config: {e}").with_traceback(e.__traceback__)
+        raise ValueError(f"Error reading config: {e}")
 
 def _load_secrets(conf: Config) -> SecretsConfig:
     try:
@@ -227,7 +227,7 @@ def _load_secrets(conf: Config) -> SecretsConfig:
         return yaml.safe_load(stream)
     except yaml.YAMLError as e:
         log.error(f'ERROR: _load_secrets() Error reading secrets: {e}')
-        raise ValueError(f"Error reading secrets: {e}").with_traceback(e.__traceback__)
+        raise ValueError(f"Error reading secrets: {e}")
 
 def load() -> Config:
     log.info('load()')

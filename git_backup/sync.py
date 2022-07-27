@@ -150,18 +150,20 @@ def check_sizes(repo: RepoConfig, ppath: str, oversize_handler: OversizeHandler)
     
     max_file_size = repo['max_file_size']
     uncache_paths = []
+    repo_path = get_repo_path(repo)
     
     def _check_sizes(path: str):
         if os.path.isfile(path):
             file_stat = os.stat(path)
             if file_stat.st_size > max_file_size:
-                if oversize_handler(path, file_stat, repo):
+                log.info(f'check_size() file over max size. path={path} size={file_stat.st_size}')
+                if oversize_handler(path, file_stat, repo):                    
                     uncache_paths.append(path)
-        else:
-            for child_path in os.scandir(path):
-                _check_sizes(child_path)
+        elif os.path.isdir(path):
+            for child in os.scandir(path):
+                _check_sizes(child.path)
                 
-    _check_sizes(ppath)
+    _check_sizes(os.path.join(repo_path, ppath))
     return uncache_paths
     
 def compress(repo: RepoConfig, path: PathConfig) -> str:

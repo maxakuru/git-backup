@@ -8,7 +8,7 @@ cd "../.."
 [ -f ./.env ] && source ./.env
 
 : "${TAG:=dev}"
-: "${USER:=maxakuru}"
+: "${USERNAME:=maxakuru}"
 : "${IMAGE:=git-backup}"
 : "${GIT_NAME:=maxakuru}"
 : "${GIT_EMAIL:=maxakuru@users.noreply.github.com}"
@@ -40,7 +40,7 @@ docker run --rm -v $PWD/volume/config:/backup/config \
     -e GIT_PUSH=$GIT_PUSH \
     -e GIT_EMAIL=$GIT_EMAIL \
     -e GIT_NAME=$GIT_NAME \
-    $USER/$IMAGE:$TAG
+    $USERNAME/$IMAGE:$TAG
 
 mkdir -p ./tmp
 

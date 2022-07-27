@@ -1,4 +1,5 @@
 from time import sleep
+import traceback
 from typing import Any, Callable, List
 
 from git_backup.config import load
@@ -14,7 +15,7 @@ def backoff(fn: Callable, args: List[Any], timeout: int = 60*60, delay: int = 10
         try:  
             return fn(*args)
         except Exception as e:
-            log.error(f'ERROR: back_off({attempt}) Unhandled exception: \n{e}')
+            log.error(f'ERROR: back_off({attempt}) Unhandled exception: \n{traceback.format_exc()}')
             attempt += 1
             delay *= 2
             timer += delay
