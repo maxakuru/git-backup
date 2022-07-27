@@ -244,6 +244,7 @@ def oh_chunking(path: str, file_stat: os.stat_result, repo: RepoConfig) -> bool:
     chunk_size = repo['max_file_size']
     full_size = file_stat.st_size
     fname = os.path.basename(path)
+    manifest_path = os.path.join(chunk_dir, 'manifest')
     
     # make directory to hold chunks
     chunk_dir = f'{path}.d'
@@ -269,13 +270,20 @@ def oh_chunking(path: str, file_stat: os.stat_result, repo: RepoConfig) -> bool:
     f.close()
     
     # update or create manifest
-    with open(os.path.join(chunk_dir, 'manifest'), 'rw', encoding='utf8') as manifest:
-        v_line: str = manifest.readline(1)
-        prev_version = 0
-        if v_line and v_line.startswith('version '):
-            prev_version = int(v_line.split(' ')[1].strip())
+    prev_version = 0
+    try:
+        with open(manifest_path, 'r', encoding='utf8') as manifest:
+            v_line: str = manifest.readline(1)
+            if v_line and v_line.startswith('version '):
+                prev_version = int(v_line.split(' ')[1].strip())
+    except Exception as e:
+        if not isinstance(e, IOError) or e.errno != 2:
+            log.warn('oh_chunking() could not read ')
+            
+    with open(manifest_path, 'w', encoding='utf8') as manifest:
         manifest.write(f'''\
 version {prev_version + 1}
+name {fname}
 oid sha256:{hash.hexdigest()}
 size {full_size}
 chunks {i}
