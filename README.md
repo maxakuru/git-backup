@@ -2,7 +2,11 @@
 
 [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/maxakuru/git-backup?label=Docker%20image)](https://hub.docker.com/r/maxakuru/git-backup) [![Publish](https://github.com/maxakuru/git-backup/actions/workflows/publish.yml/badge.svg)](https://github.com/maxakuru/git-backup/actions/workflows/publish.yml) [![Test](https://github.com/maxakuru/git-backup/actions/workflows/test.yml/badge.svg)](https://github.com/maxakuru/git-backup/actions/workflows/test.yml)
 
-Backup files/folders to a git repo. Run on a cron schedule or repeated loop with delay. Archive files/folders and set specific destinations in remote repository.
+```
+🚨 Git is not designed to serve as a backup tool.
+```
+
+..but this does it anyway. Backup files/folders to a git repo. Run on a cron schedule or repeated loop with delay. Archive files/folders and set specific destinations in remote repository. Use Git LFS or chunking for oversized files.
 
 ## Install
 
