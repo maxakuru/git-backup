@@ -344,5 +344,6 @@ def sync(conf: Config):
             log.info(f'sync() git_status (porcelain): \n{status}')
             git_commit(repo)
             git_push(repo)
+            log.info('done sync')
         else:
             log.info(f'sync() no changes, skipping commit to {repo["owner"]}/{repo["name"]}')
