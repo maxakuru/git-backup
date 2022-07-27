@@ -1,8 +1,0 @@
-# syntax=docker/dockerfile:1
-FROM python:3.9-alpine
-
-RUN --mount=type=bind,target=.,rw
-
-FROM docker:${DOCKER_VERSION} as docker
-
-ENV MY_GITHUB_TOKEN=$MY_GITHUB_TOKEN
