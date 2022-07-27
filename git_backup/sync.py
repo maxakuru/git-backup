@@ -336,7 +336,7 @@ def sync(conf: Config):
             git_add(repo, change_path)
             
             for p in uncache_paths:
-                git_rm(repo, p, True)
+                git_rm(p, repo, cached=True)
                         
         status = git_status(repo, True)
         if status:
