@@ -244,16 +244,17 @@ def oh_chunking(path: str, file_stat: os.stat_result, repo: RepoConfig) -> bool:
     chunk_size = repo['max_file_size']
     full_size = file_stat.st_size
     fname = os.path.basename(path)
+    chunk_dir = f'{path}.d'
     manifest_path = os.path.join(chunk_dir, 'manifest')
     
     # make directory to hold chunks
-    chunk_dir = f'{path}.d'
     mkdir_p(chunk_dir)
     
-    f = open(path, 'rb')
-    
-    # get hash of entire file
+    # hash of original file
     hash = hashlib.sha256()
+    
+    # original oversized file
+    f = open(path, 'rb')
     
     chunk = f.read(chunk_size)
     i = 0
