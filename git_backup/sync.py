@@ -278,7 +278,7 @@ def oh_chunking(path: str, file_stat: os.stat_result, repo: RepoConfig) -> bool:
                 prev_version = int(v_line.split(' ')[1].strip())
     except Exception as e:
         if not isinstance(e, IOError) or e.errno != 2:
-            log.warn('oh_chunking() could not read ')
+            log.warn(f'oh_chunking() could not read manifest {e}')
             
     with open(manifest_path, 'w', encoding='utf8') as manifest:
         manifest.write(f'''\
