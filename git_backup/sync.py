@@ -1,4 +1,5 @@
 from genericpath import isfile
+import hashlib
 from typing import List, Optional
 import subprocess
 import os
@@ -8,7 +9,7 @@ import pathlib
 from git_backup.config import DEFAULT_COMMIT_MESSAGE
 from git_backup.secrets import Secrets
 from git_backup.logger import get_logger
-from git_backup.types import Config, PathConfig, RSyncConfig, RepoConfig
+from git_backup.types import Config, OversizeHandler, OversizeHandlerType, PathConfig, RSyncConfig, RepoConfig
 
 log = get_logger('sync')
 
@@ -142,7 +143,26 @@ def git_push(repo: RepoConfig) -> str:
         
     log.info(f'git_push() cmd={" ".join(cmd)}')
     return exec_sh(cmd, cwd=local_path)
+
+def check_sizes(repo: RepoConfig, ppath: str, oversize_handler: OversizeHandler) -> List[str]:
+    """Traverse each child, if size exceeds limit call oversize handler
+    """
     
+    max_file_size = repo['max_file_size']
+    uncache_paths = []
+    
+    def _check_sizes(path: str):
+        if os.path.isfile(path):
+            file_stat = os.stat(path)
+            if file_stat.st_size > max_file_size:
+                if oversize_handler(path, file_stat, repo):
+                    uncache_paths.append(path)
+        else:
+            for child_path in os.scandir(path):
+                _check_sizes(child_path)
+                
+    _check_sizes(ppath)
+    return uncache_paths
     
 def compress(repo: RepoConfig, path: PathConfig) -> str:
     archive_type = path['compress']
@@ -200,6 +220,74 @@ def rsync(repo: RepoConfig, path: PathConfig, config: RSyncConfig) -> str:
     cmd.append(remote_path)
     exec_sh(cmd)
     return remote_path
+
+def git_rm(path: str, repo: RepoConfig, cached: bool = True):
+    repo_path = get_repo_path(repo)
+    
+    cmd = ["git", "rm"]
+    if cached:
+        cmd.append("--cached")
+    cmd.append(path)
+    
+    log.info(f'git_rm() cmd={" ".join(cmd)}')
+    return exec_sh(cmd, cwd=repo_path)
+    
+def oh_git_lfs(path: str, file_stat: os.stat_result, repo: RepoConfig) -> bool:
+    repo_path = get_repo_path(repo)
+    rel_path = os.path.join('/', os.path.relpath(path, repo_path))
+    exec_sh(['git', 'lfs', 'track', rel_path], repo_path)
+    return False
+
+def oh_chunking(path: str, file_stat: os.stat_result, repo: RepoConfig) -> bool:
+    chunk_size = repo['max_file_size']
+    full_size = file_stat.st_size
+    fname = os.path.basename(path)
+    
+    # make directory to hold chunks
+    chunk_dir = f'{path}.d'
+    mkdir_p(chunk_dir)
+    
+    f = open(path, 'rb')
+    
+    # get hash of entire file
+    hash = hashlib.sha256()
+    
+    chunk = f.read(chunk_size)
+    i = 0
+    while chunk:
+        hash.update(chunk)
+        
+        chunk_path = os.path.join(chunk_dir, str(i))
+        chunk_file = open(chunk_path, "wb")
+        chunk_file.write(chunk)
+        chunk_file.close()
+        
+        chunk = f.read(chunk_size)
+        i += 1
+    f.close()
+    
+    # update or create manifest
+    with open(os.path.join(chunk_dir, 'manifest'), 'rw', encoding='utf8') as manifest:
+        v_line: str = manifest.readline(1)
+        prev_version = 0
+        if v_line and v_line.startswith('version '):
+            prev_version = int(v_line.split(' ')[1].strip())
+        manifest.write(f'''\
+version {prev_version + 1}
+oid sha256:{hash.hexdigest()}
+size {full_size}
+chunks {i}
+''')
+    return True
+    
+def get_oversize_handler(handler_t: OversizeHandlerType) -> OversizeHandler:
+    if handler_t == "git_lfs":
+        return oh_git_lfs
+    elif handler_t == "chunking":
+        return oh_chunking
+    
+    log.warn(f'Invalid oversize_handler type: {handler_t}')
+    return lambda *_: False
     
 def sync(conf: Config):
     """
@@ -228,8 +316,16 @@ def sync(conf: Config):
             else:
                 # otherwise, use rsync to pull changes into repo
                 change_path = rsync(repo, path, conf['rsync'])
-                
+               
+            oversize_handler = get_oversize_handler(repo['oversize_handler'])
+            uncache_paths = check_sizes(repo, change_path, oversize_handler)
+            
+            if repo['oversize_handler'] == 'git_lfs':
+                git_add(repo, '.gitattributes')
             git_add(repo, change_path)
+            
+            for p in uncache_paths:
+                git_rm(repo, p, True)
                         
         status = git_status(repo, True)
         if status:

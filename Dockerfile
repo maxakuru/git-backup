@@ -2,7 +2,7 @@
 FROM python:3.9-alpine
 WORKDIR /backup
 
-RUN apk add --no-cache bash git rsync
+RUN apk add --no-cache bash git rsync git-lfs
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt

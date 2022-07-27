@@ -1,11 +1,17 @@
-from typing import TYPE_CHECKING, List, Literal, Mapping, Optional, Union, TypedDict
+from os import stat_result
+from typing import TYPE_CHECKING, Callable, List, Literal, Mapping, Optional, Union, TypedDict
 
 from git_backup.cron import Cron
 
 if TYPE_CHECKING:
     from git_backup.secrets import Secrets
 
-CompressType = Union[Literal['zip'], Literal['tar'], Literal["gztar"], Literal["bztar"], Literal["xztar"]]
+CompressType = Union[Literal['zip'], Literal['tar'], Literal['gztar'], Literal['bztar'], Literal['xztar']]
+
+OversizeHandlerType = Union[Literal['git_lfs'], Literal['chunk']]
+
+# (path, file_stat, repo) => rm_from_git_cache
+OversizeHandler = Callable[[str, stat_result, 'RepoConfig'], bool]
 
 class PathConfig(TypedDict):
     local: str
@@ -31,6 +37,8 @@ class RepoConfig(TypedDict):
     paths: List[PathConfig]
     branch: Optional[str]
     git: GitConfig
+    max_file_size: int # bytes
+    oversize_handler: OversizeHandlerType
     
 class RepoSecrets(TypedDict):
     token: Optional[str]

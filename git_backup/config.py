@@ -45,6 +45,7 @@ DEFAULT_INTERVAL = 1440
 DEFAULT_COMMIT_MESSAGE = 'chore(backup): update backup'
 DEFAULT_GIT_EMAIL = 'bot@backup.example'
 DEFAULT_GIT_NAME = 'Backup (bot)'
+DEFAULT_MAX_FILE_SIZE = 50 * 1024 * 1024 # 50MB
 
 def make_path_config(path_str: str, branch: str = "main", compress: CompressType = None) -> PathConfig:
     spl = path_str.split(':')
@@ -88,6 +89,8 @@ def make_repo_config(
     endpoint = get_env('REPO_ENDPOINT', True,  DEFAULT_ENDPOINT)
     api_base = get_env('API_BASE_URL', True,  DEFAULT_API_BASE)
     branch = get_env('REPO_BRANCH', True, "main")
+    max_file_size = get_env('MAX_FILE_SIZE', True, f'{DEFAULT_MAX_FILE_SIZE}', int)
+    oversize_handler_t = get_env('REPO_OVERSIZE_HANDLER', True, "chunking")
     
     return {
         "storage_root": os.path.join(storage_config["repo_root"], owner, name),
@@ -97,7 +100,9 @@ def make_repo_config(
         "endpoint": endpoint,
         "api_base": api_base,
         "paths": [make_path_config(p, branch, compress) for p in paths],
-        "git": make_git_config()
+        "git": make_git_config(),
+        "max_file_size": max_file_size,
+        "oversize_handler": oversize_handler_t
     }
     
 def make_loop_config() -> LoopConfig:
