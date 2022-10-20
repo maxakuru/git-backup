@@ -158,7 +158,7 @@ def bootstrap() -> Config:
     }
 
     if SAVE_CONFIG:
-        log.info('bootstrap_secrets() dumping config')
+        log.info('bootstrap() dumping config')
         
         with open(CONF_PATH, "w", encoding='utf8') as stream:
             yaml.dump(data, stream, default_flow_style=False, allow_unicode=True)
@@ -199,6 +199,11 @@ def bootstrap_secrets(default_repo: RepoConfig) -> SecretsConfig:
             yaml.dump(data, stream, default_flow_style=False, allow_unicode=True)
     return data
 
+def hydrate_conf(conf: Config) -> Config:
+    if 'schedule' in conf['loop'] and conf['loop']['schedule'] is str:
+        log.info(f'hydrating schedule: \'{conf["loop"]["schedule"]}\'')
+        conf['loop']['schedule'] = Cron(conf['loop']['schedule'])
+    return conf
     
 def _load_conf():
     try:
@@ -210,9 +215,7 @@ def _load_conf():
         return bootstrap()
     try:
         conf = yaml.safe_load(stream)
-        # reinit crontab if needed
-        if 'schedule' in conf['loop'] and conf['loop']['schedule'] is str:
-            conf['loop']['schedule'] = Cron(conf['loop']['schedule'])
+        conf = hydrate_conf(conf)
         return conf
     except yaml.YAMLError as e:
         log.error(f'ERROR: _load_conf() Error reading config: {e}')
