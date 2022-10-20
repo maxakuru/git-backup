@@ -200,6 +200,8 @@ def bootstrap_secrets(default_repo: RepoConfig) -> SecretsConfig:
     return data
 
 def hydrate_conf(conf: Config) -> Config:
+    log.info('hydrate_conf()')
+
     if 'schedule' in conf['loop'] and conf['loop']['schedule'] is str:
         log.info(f'hydrating schedule: \'{conf["loop"]["schedule"]}\'')
         conf['loop']['schedule'] = Cron(conf['loop']['schedule'])
