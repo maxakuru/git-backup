@@ -202,9 +202,12 @@ def bootstrap_secrets(default_repo: RepoConfig) -> SecretsConfig:
 def hydrate_conf(conf: Config) -> Config:
     log.info('hydrate_conf()')
 
-    if 'schedule' in conf['loop'] and conf['loop']['schedule'] is str:
-        log.info(f'hydrating schedule: \'{conf["loop"]["schedule"]}\'')
-        conf['loop']['schedule'] = Cron(conf['loop']['schedule'])
+    if 'schedule' in conf['loop']:
+        if not isinstance(conf['loop']['schedule'], (str, Cron)):
+            log.error(f'invalid schedule type, ignoring')
+        else:
+            log.info(f'hydrating schedule: \'{conf["loop"]["schedule"]}\'')
+            conf['loop']['schedule'] = Cron(conf['loop']['schedule'])
     return conf
     
 def _load_conf():
