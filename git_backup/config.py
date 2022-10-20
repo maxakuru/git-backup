@@ -209,7 +209,11 @@ def _load_conf():
             raise e
         return bootstrap()
     try:
-        return yaml.safe_load(stream)
+        conf = yaml.safe_load(stream)
+        # reinit crontab if needed
+        if 'schedule' in conf['loop'] and conf['loop']['schedule'] is str:
+            conf['loop']['schedule'] = Cron(conf['loop']['schedule'])
+        return conf
     except yaml.YAMLError as e:
         log.error(f'ERROR: _load_conf() Error reading config: {e}')
         raise ValueError(f"Error reading config: {e}")
