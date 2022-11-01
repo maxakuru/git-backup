@@ -42,12 +42,18 @@ def run():
             log.info(f'running in loop every {loop["interval"]} minutes')
             
         while True:   
-            log.debug('start sync')
-            backoff(sync, [conf])
             if scheduled:
-                sleep(loop['schedule'].next())
+                t = loop['schedule'].next()
+                log.info(f'next sync in {t} seconds')
+                sleep(t)
+                log.info('start sync')
+                backoff(sync, [conf])
             else:
-                sleep(loop['interval']*60)
+                log.info('start sync')
+                backoff(sync, [conf])
+                t = loop['interval']*60
+                log.info(f'next sync in {t} seconds')
+                sleep(t)
 
 if __name__ == "__main__":
     run()
